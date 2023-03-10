@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "fari-welcome-screen"
+version = "0.1.1"
+description = "Template home page for all the FARI demo project"
+authors = ["jbaudru <33021761+jbaudru@users.noreply.github.com>"]
+readme = "README.md"
+packages = [{include = "fari_welcome_screen"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+flet = "^0.4.2"
+selenium = "^4.8.2"
+screeninfo = "^0.8.1"
+fletcarousel = "^0.0.12"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

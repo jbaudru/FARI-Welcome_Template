@@ -1,0 +1,6 @@
+flet
+poetry
+selenium
+screeninfo
+fletcarousel
+pydantic
