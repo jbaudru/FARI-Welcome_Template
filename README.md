@@ -1,23 +1,15 @@
-# FARI - Animal-welfare welcome screen
+# FARI - General welcome screen
 
 ## Install
 ```
 pip install -r requirements.txt
 ```
 ## Run
-First run the animal welfare project (https://github.com/jbaudru/demo-iridia-animal-welfare)
+- First run the specific demo in local.
+
+- Next, make sure that the Strapi API is running somewhere.
+
+- Then, run the Welcome page where *x* is the ID of the desired Welcome page (see below). 
 ```
-python3 -m flask --app=app --debug run --host=0.0.0.0
-```
-### Web interface
-```
-python3 main.py
-```
-or in a virtual environement
-```
-poetry run python main.py
-```
-### Local interface
-```
-flet run main.py -d
+python3 main.py --demonumber x 
 ```
