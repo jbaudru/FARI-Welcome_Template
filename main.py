@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 
 global language, driver, imageURL, appURL, STRAPI_ID
 STRAPI_URL = "http://localhost:1337/"
-STRAPI_ID = 0 
+STRAPI_ID = 2 # (0:VQA, 1:ETRO, 2:ANIMAL) index of the current project
 language="EN"
 driver = None
 
