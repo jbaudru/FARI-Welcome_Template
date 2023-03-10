@@ -8,7 +8,9 @@ from screeninfo import get_monitors
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-global language, driver
+global language, driver, imageURL, appURL, STRAPI_ID
+STRAPI_URL = "http://localhost:1337/"
+STRAPI_ID = 0 
 language="EN"
 driver = None
 
@@ -20,7 +22,7 @@ def main(page: ft.Page):
     txt_topic = ft.Text(value="",color="#65C0B5", size=14, font_family="Plain")
     txt_explain1 = ft.Text(value="", color="#1A202C", font_family="Plain", size=14, width=600)
     txt_start_demo = ft.Text(value="", color="#ffffff", size=28, font_family="Plain")
-    txt_title2 = ft.Text(value="", color="#ffffff", size=40, font_family="Rhetorik")
+    txt_title2 = ft.Text(value="", color="#ffffff", size=40, font_family="Rhetorik", width=600)
     txt_topic2 = ft.Text(value="", color="#65C0B5", size=14, font_family="Plain")
     txt_explain2 = ft.Text(width=600,value="", color="#ffffff", font_family="Plain", size=14)
     txt_learnmore = ft.ElevatedButton(
@@ -52,28 +54,33 @@ def main(page: ft.Page):
     def changeText():
         """Change the text language based on a given input string (EN, NL or FR)
         """
-        global language
+        global language, imageURL, appURL, STRAPI_URL
+        # TEXT
         if(language=="EN"):
-            url = "http://localhost:1337/api/demos?locale=en"
+            url = STRAPI_URL + "api/demos?locale=en"
         elif(language=="NL"):
-            url = "http://localhost:1337/api/demos?locale=nl"
+            url = STRAPI_URL + "api/demos?locale=nl"
         elif(language=="FR"):
-            url = "http://localhost:1337/api/demos?locale=fr"
-
-        response = requests.get(url) # Call the STRAPI API
+            url = STRAPI_URL + "api/demos?locale=fr"
+        response = requests.get(url) # Call the STRAPI API        
         response_json = response.json()
-        #print(response_json)
-        
-        txt_title.value = response_json["data"][0]["attributes"]["title"]
-        txt_topic.value = response_json["data"][0]["attributes"]["topic"]
-        txt_explain1.value = response_json["data"][0]["attributes"]["explanation_short"]
-        txt_start_demo.value = response_json["data"][0]["attributes"]["button_demo_start"]
-        txt_title2.value = response_json["data"][0]["attributes"]["title"]
-        txt_topic2.value = response_json["data"][0]["attributes"]["topic"]
-        txt_explain2.value = response_json["data"][0]["attributes"]["explanation"]
-        txt_learnmore.text = response_json["data"][0]["attributes"]["learn_more"]
-        
 
+        txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+        txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+        txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
+        txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
+        txt_title2.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+        txt_topic2.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+        txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
+        txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
+        # APP URL
+        appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
+        # IMAGE
+        url_img = STRAPI_URL + "api/demos?populate=*"
+        response = requests.get(url_img) # Call the STRAPI API
+        response_json = response.json()
+        imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"][0]["attributes"]["formats"]["medium"]["url"]
+        
     def loadLang():
         """Base on the value of the global var 'language', it load the set of text in the correct language
         """
@@ -111,10 +118,11 @@ def main(page: ft.Page):
         Args:
             e (error): Should not occur, trust me
         """
-        global driver
+        global driver, appURL
         page.go("/demo")
         options = Options()
-        options.add_argument("--app=https://ehai.ai.vub.ac.be/demos/visual-question-answering/")
+        URL = "--app=" + appURL
+        options.add_argument(URL)
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_argument("silent-debugger-extension-api")
         options.add_argument("no-default-browser-check")
@@ -124,7 +132,6 @@ def main(page: ft.Page):
         driver = webdriver.Chrome(options=options)
         driver.set_window_size(1920, 980)
         driver.set_window_position(0, 120, windowHandle='current')
-        # https://extensions.gnome.org/extension/1267/no-title-bar/
         
     def closeDemo(e):
         """Close the Front demo page (Selenium)
@@ -560,7 +567,7 @@ def main(page: ft.Page):
                                     
                                 ),
                                 ft.Image(
-                                    src=f"/img/example.jpg",
+                                    src=imageURL,
                                     fit=ft.ImageFit.COVER,
                                     width=700,
                                 ),
