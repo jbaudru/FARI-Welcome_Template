@@ -4,6 +4,8 @@ from flet import BorderSide
 from fletcarousel import BasicHorizontalCarousel, AutoCycle
 
 import requests
+import argparse
+
 from screeninfo import get_monitors
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -632,5 +634,9 @@ def main(page: ft.Page):
     page.go(page.route)
     
 
-
-ft.app(target=main, port=8550, assets_dir="assets")
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Running demo welcome page')
+    parser.add_argument('--scrapi_id', required=True, help='the Scrapi API ID of the demo')
+    args = parser.parse_args()
+    STRAPI_ID = int(args.scrapi_id)
+    ft.app(target=main, port=8550, assets_dir="assets")
