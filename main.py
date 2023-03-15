@@ -13,6 +13,7 @@ from selenium.webdriver.chrome.options import Options
 
 global language, driver, imageURL, appURL, STRAPI_ID, seconds
 STRAPI_URL = "http://localhost:1337/"
+STRAPI_URL = "https://20da-2001-4b98-dc2-41-216-3eff-fedd-445b.eu.ngrok.io/"
 STRAPI_ID = 2 # (0:VQA, 1:ETRO, 2:ANIMAL) index of the current project
 language="EN"
 driver = None
@@ -81,6 +82,11 @@ def main(page: ft.Page):    # check if no mouse click from the user
         """Change the text language based on a given input string (EN, NL or FR)
         """
         global language, imageURL, appURL, STRAPI_URL
+        url = STRAPI_URL + "demos/"
+        response = requests.get(url) # Call the STRAPI API        
+        response_json = response.json()
+        print(response_json)
+        
         try:
             print("[+] Getting data from STRAPI")
             # TEXT
