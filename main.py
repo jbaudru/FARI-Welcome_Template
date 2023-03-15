@@ -5,18 +5,42 @@ from fletcarousel import BasicHorizontalCarousel, AutoCycle
 
 import requests
 import argparse
+import time, threading
 
 from screeninfo import get_monitors
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-global language, driver, imageURL, appURL, STRAPI_ID
+global language, driver, imageURL, appURL, STRAPI_ID, seconds
 STRAPI_URL = "http://localhost:1337/"
 STRAPI_ID = 2 # (0:VQA, 1:ETRO, 2:ANIMAL) index of the current project
 language="EN"
 driver = None
+TIMEOUT = 120
+seconds = TIMEOUT
 
-def main(page: ft.Page):        
+
+def main(page: ft.Page):    # check if no mouse click from the user
+    def update_timer():
+        print("[+] Starting timer")
+        global seconds
+        while True:
+            while seconds:
+                time.sleep(1)
+                seconds -= 1
+                #print(seconds)
+            if(seconds==0):
+                page.go('/')
+                seconds= TIMEOUT
+                
+    def listenMouse(e):
+        global seconds
+        seconds= TIMEOUT
+        print("[!] Reset timer", seconds)
+        
+    th = threading.Thread(target=update_timer, args=(), daemon=True)
+    th.start()
+    
     """
     Set of main GUI elements that requiered to be dynamic
     """
@@ -57,32 +81,36 @@ def main(page: ft.Page):
         """Change the text language based on a given input string (EN, NL or FR)
         """
         global language, imageURL, appURL, STRAPI_URL
-        # TEXT
-        if(language=="EN"):
-            url = STRAPI_URL + "api/demos?locale=en"
-        elif(language=="NL"):
-            url = STRAPI_URL + "api/demos?locale=nl"
-        elif(language=="FR"):
-            url = STRAPI_URL + "api/demos?locale=fr"
-        response = requests.get(url) # Call the STRAPI API        
-        response_json = response.json()
+        try:
+            print("[+] Getting data from STRAPI")
+            # TEXT
+            if(language=="EN"):
+                url = STRAPI_URL + "api/demos?locale=en"
+            elif(language=="NL"):
+                url = STRAPI_URL + "api/demos?locale=nl"
+            elif(language=="FR"):
+                url = STRAPI_URL + "api/demos?locale=fr"
+            response = requests.get(url) # Call the STRAPI API        
+            response_json = response.json()
 
-        txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-        txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
-        txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
-        txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
-        txt_title2.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-        txt_topic2.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
-        txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
-        txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
-        # APP URL
-        appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
-        # IMAGE
-        url_img = STRAPI_URL + "api/demos?populate=*"
-        response = requests.get(url_img) # Call the STRAPI API
-        response_json = response.json()
-        imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"][0]["attributes"]["formats"]["medium"]["url"]
-        
+            txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+            txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+            txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
+            txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
+            txt_title2.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+            txt_topic2.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+            txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
+            txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
+            # APP URL
+            appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
+            # IMAGE
+            url_img = STRAPI_URL + "api/demos?populate=*"
+            response = requests.get(url_img) # Call the STRAPI API
+            response_json = response.json()
+            imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"][0]["attributes"]["formats"]["medium"]["url"]
+        except:
+            print("[!] Strapi server down")
+
     def loadLang():
         """Base on the value of the global var 'language', it load the set of text in the correct language
         """
@@ -94,6 +122,8 @@ def main(page: ft.Page):
         Args:
             e (error): Should not occur, trust me
         """
+        global language, seconds
+        seconds= TIMEOUT
         closeDemo(e)
         page.go('/more')
         pass
@@ -109,18 +139,14 @@ def main(page: ft.Page):
         loadLang()
         page.go("/home")   
 
-    def back(e):
-        closeDemo(e)
-        page.go("/home")
-
-
     def demo(e):
         """Display the Demo page (Back page: Close and top bar & Front page: The Selenium demo) 
 
         Args:
             e (error): Should not occur, trust me
         """
-        global driver, appURL
+        global driver, appURL, seconds
+        seconds= TIMEOUT
         page.go("/demo")
         options = Options()
         URL = "--app=" + appURL
@@ -150,6 +176,8 @@ def main(page: ft.Page):
 
 
     def back(e):
+        global language, seconds
+        seconds= TIMEOUT
         closeDemo(e)
         page.go("/home")
     
@@ -172,8 +200,7 @@ def main(page: ft.Page):
 
         Args:
             route (string): The URL of the desired page
-        """
-        global language
+        """        
         page.views.clear()
         page.views.append(
             ft.View(
@@ -334,6 +361,7 @@ def main(page: ft.Page):
                                 ft.TextButton(
                                     text=language, 
                                     icon=ft.icons.LANGUAGE, 
+                                    on_hover=listenMouse,
                                     icon_color="#575757", 
                                     on_click=lambda _: page.go("/"),
                                     style=ft.ButtonStyle(
@@ -349,6 +377,7 @@ def main(page: ft.Page):
                         ft.Container(
                             margin=(130),
                             alignment=ft.alignment.center,
+                            on_hover=listenMouse,
                             content=
                             ft.Row(
                                 spacing=(40),
@@ -393,6 +422,7 @@ def main(page: ft.Page):
                         ), 
                         ft.Container(
                             height=100,
+                            on_hover=listenMouse,
                         ),
                         ft.Container(
                             alignment=ft.alignment.bottom_center,
@@ -400,6 +430,7 @@ def main(page: ft.Page):
                                 ft.MaterialState.DEFAULT: BorderSide(1, ft.colors.BLUE_GREY),
                                 ft.MaterialState.HOVERED: BorderSide(2, ft.colors.BLUE_GREY),
                             },
+                            on_hover=listenMouse,
                             content=
                             ft.Column(
                                 controls=[
@@ -539,6 +570,7 @@ def main(page: ft.Page):
                     controls=
                     [
                         ft.Row(
+                            on_hover=listenMouse,
                             controls=[
                                 ft.TextButton(
                                     icon=ft.icons.ARROW_BACK, 
@@ -555,6 +587,7 @@ def main(page: ft.Page):
                         ft.Container(
                             margin=(130),
                             alignment=ft.alignment.center,
+                            on_hover=listenMouse,
                             content=
                             ft.Row(
                                 spacing=(70),
@@ -591,6 +624,7 @@ def main(page: ft.Page):
                     [
                         ft.Row(
                             height=100,
+                            on_hover=listenMouse,
                             controls=[
                                 ft.TextButton(icon=ft.icons.ARROW_BACK, icon_color="#ffffff", on_click=lambda _: back(_)),
                                 ft.Image(
@@ -632,11 +666,12 @@ def main(page: ft.Page):
     page.on_route_change = route_change
     page.on_view_pop = view_pop
     page.go(page.route)
-    
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Running demo welcome page')
     parser.add_argument('--scrapi_id', required=True, help='the Scrapi API ID of the demo')
     args = parser.parse_args()
     STRAPI_ID = int(args.scrapi_id)
+
     ft.app(target=main, port=8550, assets_dir="assets")
+    
