@@ -11,12 +11,12 @@ from screeninfo import get_monitors
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-global language, driver, imageURL, appURL, STRAPI_ID, seconds, current_route
-STRAPI_URL = "http://localhost:1337/"
-STRAPI_URL = "https://c873-2001-4b98-dc2-41-216-3eff-febb-9597.eu.ngrok.io/"
+global language, driver, imageURL, appURL, STRAPI_ID, seconds, current_route, lst_image_caroussel
+STRAPI_URL = "http://46.226.110.124:1337/"
 STRAPI_ID = 2 # (0:ANIMAL, 0:VQA, 1:ETRO) index of the current project
 language="EN"
 driver = None
+lst_image_caroussel = []
 TIMEOUT = 120
 seconds = TIMEOUT
 
@@ -83,7 +83,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
     def changeText():
         """Change the text language based on a given input string (EN, NL or FR)
         """
-        global language, imageURL, appURL, STRAPI_URL
+        global language, imageURL, appURL, STRAPI_URL, lst_image_caroussel
         url = STRAPI_URL + "demos/"
         
         print("[+] Getting data from STRAPI")
@@ -114,6 +114,24 @@ def main(page: ft.Page):    # check if no mouse click from the user
             response = requests.get(url_img) # Call the STRAPI API
             response_json = response.json()
             imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"]["attributes"]["formats"]["medium"]["url"]
+            # IMAGES CAROUSSEL
+            lenght_caroussel = len(response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"])
+            for i in range(0, lenght_caroussel):
+                urlimg = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"][i]["attributes"]["url"]
+                lst_image_caroussel.append(ft.Container(
+                    height=50,
+                    width=300,
+                    content=
+                    ft.Image(
+                        src=urlimg,
+                        fit=ft.ImageFit.FIT_HEIGHT,
+                        color="#c5c5c5",
+                        height=50,
+                    ),
+                    )
+                )
+            
+            
         except:
             print("[!] Error - CMS is offline")
 
@@ -209,7 +227,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
         Args:
             route (string): The URL of the desired page
         """  
-        global imageURL, current_route      
+        global imageURL, current_route, lst_image_caroussel  
         current_route = route
         page.views.clear()
         page.views.append(
@@ -455,97 +473,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
                                                 page=page,
                                                 items_count=5,
                                                 #auto_cycle=AutoCycle(duration=1),
-                                                items=[
-                                                    ft.Container(
-                                                        height=50,
-                                                        width=300,
-                                                        content=
-                                                        ft.Image(
-                                                            src=f"/img/pp.svg",
-                                                            fit=ft.ImageFit.FIT_HEIGHT,
-                                                            color="#c5c5c5",
-                                                            height=50,
-                                                        ),
-                                                    ),
-                                                    ft.Container(
-                                                        height=50,
-                                                        width=300,
-                                                        content=
-                                                        ft.Image(
-                                                            src=f"/img/solvay.svg",
-                                                            fit=ft.ImageFit.FIT_HEIGHT,
-                                                            color="#c5c5c5",
-                                                            height=50,
-                                                        ),
-                                                    ),
-                                                    ft.Container(
-                                                        height=50,
-                                                        width=300,
-                                                        content=
-                                                        ft.Image(
-                                                            src=f"/img/mlg.svg",
-                                                            fit=ft.ImageFit.FIT_HEIGHT,
-                                                            color="#c5c5c5",
-                                                            height=50,
-                                                        ),
-                                                    ),
-                                                    ft.Container(
-                                                        height=50,
-                                                        width=300,
-                                                        content=
-                                                        ft.Image(
-                                                            src=f"/img/smit.svg",
-                                                            fit=ft.ImageFit.FIT_HEIGHT,
-                                                            color="#c5c5c5",
-                                                            height=50,
-                                                        ),
-                                                    ),
-                                                    ft.Container(
-                                                        height=50,
-                                                        width=300,
-                                                        content=
-                                                        ft.Image(
-                                                            src=f"/img/lsts.svg",
-                                                            fit=ft.ImageFit.FIT_HEIGHT,
-                                                            color="#c5c5c5",
-                                                            height=50,
-                                                        ),
-                                                    ),
-                                                    ft.Container(
-                                                        height=50,
-                                                        width=300,
-                                                        content=
-                                                        ft.Image(
-                                                            src=f"/img/air.svg",
-                                                            fit=ft.ImageFit.FIT_HEIGHT,
-                                                            color="#c5c5c5",
-                                                            height=50,
-                                                        ),
-                                                    ),
-                                                    ft.Container(
-                                                        height=50,
-                                                        width=300,
-                                                        content=
-                                                        ft.Image(
-                                                            src=f"/img/brubotics.svg",
-                                                            fit=ft.ImageFit.FIT_HEIGHT,
-                                                            color="#c5c5c5",
-                                                            height=50,
-                                                        ),
-                                                    ),
-                                                    ft.Container(
-                                                        height=50,
-                                                        width=300,
-                                                        content=
-                                                        ft.Image(
-                                                            src=f"/img/etro.svg",
-                                                            fit=ft.ImageFit.FIT_HEIGHT,
-                                                            color="#c5c5c5",
-                                                            height=50,
-                                                        ),
-                                                    ),
-
-                                                ],
+                                                items=lst_image_caroussel,
                                                 buttons=[
                                                     ft.TextButton(
                                                         icon=ft.icons.NAVIGATE_BEFORE,
