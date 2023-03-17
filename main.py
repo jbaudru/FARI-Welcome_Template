@@ -180,7 +180,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
             driver = None
         except:
             print("[!] - Error while closing demo")
-        page.go("/home")
+            #page.go("/home")
 
 
     def back(e):
