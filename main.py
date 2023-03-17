@@ -11,7 +11,7 @@ from screeninfo import get_monitors
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-global language, driver, imageURL, appURL, STRAPI_ID, seconds
+global language, driver, imageURL, appURL, STRAPI_ID, seconds, current_route
 STRAPI_URL = "http://localhost:1337/"
 STRAPI_URL = "https://c873-2001-4b98-dc2-41-216-3eff-febb-9597.eu.ngrok.io/"
 STRAPI_ID = 2 # (0:ANIMAL, 0:VQA, 1:ETRO) index of the current project
@@ -31,8 +31,9 @@ def main(page: ft.Page):    # check if no mouse click from the user
                 seconds -= 1
             if(seconds==0):
                 print("[+] Timer expired")
-                closeDemo()
-                page.go('/')
+                closeDemo(None)
+                if(current_route!="/"): # IF NOT ALREADY IN /
+                    page.go('/')
                 seconds=TIMEOUT
                 
     def listenMouse(e):
@@ -84,8 +85,6 @@ def main(page: ft.Page):    # check if no mouse click from the user
         """
         global language, imageURL, appURL, STRAPI_URL
         url = STRAPI_URL + "demos/"
-        response = requests.get(url) # Call the STRAPI API        
-        response_json = response.json()
         
         print("[+] Getting data from STRAPI")
         if(language=="EN"):
@@ -94,26 +93,29 @@ def main(page: ft.Page):    # check if no mouse click from the user
             url = STRAPI_URL + "api/demos?locale=nl"
         elif(language=="FR"):
             url = STRAPI_URL + "api/demos?locale=fr-FR"
-        response = requests.get(url) # Call the STRAPI API        
-        response_json = response.json()
-        # TEXT
-        txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-        txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
-        txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
-        txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
-        txt_title2.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-        txt_topic2.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
-        txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
-        txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
-        # APP URL
-        appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
-        # IMAGE
-        url_img = STRAPI_URL + "api/demos?populate=*"
-        response = requests.get(url_img) # Call the STRAPI API
-        response_json = response.json()
-        imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"]["attributes"]["formats"]["medium"]["url"]
-        print(imageURL)
 
+        try:
+            response = requests.get(url) # Call the STRAPI API        
+            response_json = response.json()
+
+            # TEXT
+            txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+            txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+            txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
+            txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
+            txt_title2.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+            txt_topic2.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+            txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
+            txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
+            # APP URL
+            appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
+            # IMAGE
+            url_img = STRAPI_URL + "api/demos?populate=*"
+            response = requests.get(url_img) # Call the STRAPI API
+            response_json = response.json()
+            imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"]["attributes"]["formats"]["medium"]["url"]
+        except:
+            print("[!] Error - CMS is offline")
 
     def loadLang():
         """Base on the value of the global var 'language', it load the set of text in the correct language
@@ -138,7 +140,8 @@ def main(page: ft.Page):    # check if no mouse click from the user
         Args:
             e (error): Should not occur, trust me
         """
-        global language
+        global language, seconds
+        seconds= TIMEOUT
         language=e
         loadLang()
         page.go("/home")   
@@ -150,7 +153,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
             e (error): Should not occur, trust me
         """
         global driver, appURL, seconds
-        seconds=300
+        seconds=420
         page.go("/demo")
         options = Options()
         URL = "--app=" + appURL
@@ -174,6 +177,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
         global driver
         try:
             driver.close()
+            driver = None
         except:
             print("[!] - Error while closing demo")
         page.go("/home")
@@ -200,12 +204,13 @@ def main(page: ft.Page):    # check if no mouse click from the user
     # UIX & GUI DEFINITION
     #===============================================================================  
     def route_change(route):
-        global imageURL
         """Display the correct page based on the route choose by the user ("/", "/demo", "/how", "/about")
 
         Args:
             route (string): The URL of the desired page
-        """        
+        """  
+        global imageURL, current_route      
+        current_route = route
         page.views.clear()
         page.views.append(
             ft.View(
