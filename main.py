@@ -13,8 +13,8 @@ from selenium.webdriver.chrome.options import Options
 
 global language, driver, imageURL, appURL, STRAPI_ID, seconds
 STRAPI_URL = "http://localhost:1337/"
-STRAPI_URL = "https://20da-2001-4b98-dc2-41-216-3eff-fedd-445b.eu.ngrok.io/"
-STRAPI_ID = 2 # (0:VQA, 1:ETRO, 2:ANIMAL) index of the current project
+STRAPI_URL = "https://a2d4-2001-4b98-dc2-41-216-3eff-febb-9597.eu.ngrok.io/"
+STRAPI_ID = 2 # (0:ANIMAL, 0:VQA, 1:ETRO) index of the current project
 language="EN"
 driver = None
 TIMEOUT = 120
@@ -85,37 +85,34 @@ def main(page: ft.Page):    # check if no mouse click from the user
         url = STRAPI_URL + "demos/"
         response = requests.get(url) # Call the STRAPI API        
         response_json = response.json()
-        print(response_json)
         
-        try:
-            print("[+] Getting data from STRAPI")
-            # TEXT
-            if(language=="EN"):
-                url = STRAPI_URL + "api/demos?locale=en"
-            elif(language=="NL"):
-                url = STRAPI_URL + "api/demos?locale=nl"
-            elif(language=="FR"):
-                url = STRAPI_URL + "api/demos?locale=fr"
-            response = requests.get(url) # Call the STRAPI API        
-            response_json = response.json()
+        print("[+] Getting data from STRAPI")
+        if(language=="EN"):
+            url = STRAPI_URL + "api/demos?locale=en"
+        elif(language=="NL"):
+            url = STRAPI_URL + "api/demos?locale=nl"
+        elif(language=="FR"):
+            url = STRAPI_URL + "api/demos?locale=fr-FR"
+        response = requests.get(url) # Call the STRAPI API        
+        response_json = response.json()
+        # TEXT
+        txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+        txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+        txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
+        txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
+        txt_title2.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+        txt_topic2.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+        txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
+        txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
+        # APP URL
+        appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
+        # IMAGE
+        url_img = STRAPI_URL + "api/demos?populate=*"
+        response = requests.get(url_img) # Call the STRAPI API
+        response_json = response.json()
+        imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"]["attributes"]["formats"]["medium"]["url"]
+        print(imageURL)
 
-            txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-            txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
-            txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
-            txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
-            txt_title2.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-            txt_topic2.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
-            txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
-            txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
-            # APP URL
-            appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
-            # IMAGE
-            url_img = STRAPI_URL + "api/demos?populate=*"
-            response = requests.get(url_img) # Call the STRAPI API
-            response_json = response.json()
-            imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"][0]["attributes"]["formats"]["medium"]["url"]
-        except:
-            print("[!] Strapi server down")
 
     def loadLang():
         """Base on the value of the global var 'language', it load the set of text in the correct language
@@ -202,6 +199,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
     # UIX & GUI DEFINITION
     #===============================================================================  
     def route_change(route):
+        global imageURL
         """Display the correct page based on the route choose by the user ("/", "/demo", "/how", "/about")
 
         Args:
@@ -576,7 +574,6 @@ def main(page: ft.Page):    # check if no mouse click from the user
                     controls=
                     [
                         ft.Row(
-                            on_hover=listenMouse,
                             controls=[
                                 ft.TextButton(
                                     icon=ft.icons.ARROW_BACK, 
@@ -675,9 +672,9 @@ def main(page: ft.Page):    # check if no mouse click from the user
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Running demo welcome page')
-    parser.add_argument('--scrapi_id', required=True, help='the Scrapi API ID of the demo')
+    parser.add_argument('--id', required=True, help='the Scrapi API ID of the demo')
     args = parser.parse_args()
-    STRAPI_ID = int(args.scrapi_id)
+    STRAPI_ID = int(args.id)
 
     ft.app(target=main, port=8550, assets_dir="assets")
     
