@@ -30,6 +30,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
                 time.sleep(1)
                 seconds -= 1
             if(seconds==0):
+                print("[+] Timer expired")
                 closeDemo()
                 page.go('/')
                 seconds=TIMEOUT
@@ -149,7 +150,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
             e (error): Should not occur, trust me
         """
         global driver, appURL, seconds
-        seconds= TIMEOUT
+        seconds=300
         page.go("/demo")
         options = Options()
         URL = "--app=" + appURL
@@ -620,7 +621,6 @@ def main(page: ft.Page):    # check if no mouse click from the user
             )
         
         if page.route == "/demo":
-            
             page.views.append(
                 ft.View(
                     "/demo",
