@@ -13,7 +13,7 @@ from selenium.webdriver.chrome.options import Options
 
 global language, driver, imageURL, appURL, STRAPI_ID, seconds
 STRAPI_URL = "http://localhost:1337/"
-STRAPI_URL = "https://a2d4-2001-4b98-dc2-41-216-3eff-febb-9597.eu.ngrok.io/"
+STRAPI_URL = "https://c873-2001-4b98-dc2-41-216-3eff-febb-9597.eu.ngrok.io/"
 STRAPI_ID = 2 # (0:ANIMAL, 0:VQA, 1:ETRO) index of the current project
 language="EN"
 driver = None
@@ -23,16 +23,16 @@ seconds = TIMEOUT
 
 def main(page: ft.Page):    # check if no mouse click from the user
     def update_timer():
-        print("[+] Starting timer")
         global seconds
+        print("[+] Starting timer:", seconds)
         while True:
             while seconds:
                 time.sleep(1)
                 seconds -= 1
-                #print(seconds)
             if(seconds==0):
+                closeDemo()
                 page.go('/')
-                seconds= TIMEOUT
+                seconds=TIMEOUT
                 
     def listenMouse(e):
         global seconds
@@ -61,7 +61,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
                         ft.ButtonStyle(
                             color="#ffffff",
                             padding=10,
-                            bgcolor="#2153d1",
+                            bgcolor={ft.MaterialState.DEFAULT: "#2153d1", ft.MaterialState.HOVERED: ft.colors.BLUE},
                             side={
                                 ft.MaterialState.DEFAULT: BorderSide(1, ft.colors.BLUE),
                                 ft.MaterialState.HOVERED: BorderSide(2, ft.colors.BLUE),
@@ -174,7 +174,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
         try:
             driver.close()
         except:
-            pass
+            print("[!] - Error while closing demo")
         page.go("/home")
 
 
@@ -252,7 +252,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
                                                     style=
                                                     ft.ButtonStyle(
                                                         padding=20,
-                                                        bgcolor={ft.MaterialState.HOVERED: "#2153d1"},
+                                                        bgcolor={ft.MaterialState.DEFAULT: "#2153d1", ft.MaterialState.HOVERED: ft.colors.BLUE},
                                                         side={
                                                             ft.MaterialState.DEFAULT: BorderSide(1, ft.colors.BLUE),
                                                             ft.MaterialState.HOVERED: BorderSide(2, ft.colors.BLUE),
@@ -289,7 +289,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
                                                     style=
                                                     ft.ButtonStyle(
                                                         padding=20,
-                                                        bgcolor={ft.MaterialState.HOVERED: "#2153d1"},
+                                                        bgcolor={ft.MaterialState.DEFAULT: "#2153d1", ft.MaterialState.HOVERED: ft.colors.BLUE},
                                                         side={
                                                             ft.MaterialState.DEFAULT: BorderSide(1, ft.colors.BLUE),
                                                             ft.MaterialState.HOVERED: BorderSide(2, ft.colors.BLUE),
@@ -326,7 +326,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
                                                     style=
                                                     ft.ButtonStyle(
                                                         padding=20,
-                                                        bgcolor={ft.MaterialState.HOVERED: "#2153d1"},
+                                                        bgcolor={ft.MaterialState.DEFAULT: "#2153d1", ft.MaterialState.HOVERED: ft.colors.BLUE},
                                                         side={
                                                             ft.MaterialState.DEFAULT: BorderSide(1, ft.colors.BLUE),
                                                             ft.MaterialState.HOVERED: BorderSide(2, ft.colors.BLUE),
@@ -412,10 +412,10 @@ def main(page: ft.Page):    # check if no mouse click from the user
                                     style=ft.ButtonStyle(
                                         shape=ft.CircleBorder(), 
                                         padding=180,
-                                        bgcolor={ft.MaterialState.DEFAULT: "#2250C6"},
+                                        bgcolor={ft.MaterialState.DEFAULT: "#2250c6", ft.MaterialState.HOVERED: ft.colors.BLUE},
                                         side={
                                             ft.MaterialState.DEFAULT: BorderSide(1, "#2250c6"),
-                                            ft.MaterialState.HOVERED: BorderSide(4, "#726fff"),
+                                            ft.MaterialState.HOVERED: BorderSide(4, ft.colors.BLUE),
                                         },
                                     ),
                                     on_click=demo
@@ -567,6 +567,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
                 )
             )
         if page.route == "/more":
+            seconds = 300
             page.views.append(
                 ft.View(
                     "/more",
@@ -619,6 +620,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
             )
         
         if page.route == "/demo":
+            
             page.views.append(
                 ft.View(
                     "/demo",
@@ -627,7 +629,6 @@ def main(page: ft.Page):    # check if no mouse click from the user
                     [
                         ft.Row(
                             height=100,
-                            on_hover=listenMouse,
                             controls=[
                                 ft.TextButton(icon=ft.icons.ARROW_BACK, icon_color="#ffffff", on_click=lambda _: back(_)),
                                 ft.Image(
