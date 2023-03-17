@@ -11,12 +11,12 @@ from screeninfo import get_monitors
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-global language, driver, imageURL, appURL, STRAPI_ID, seconds, current_route, lst_image_caroussel
+global language, driver, imageURL, appURL, STRAPI_ID, seconds, current_route, lst_image_caroussel, lst_image_sdg
 STRAPI_URL = "http://46.226.110.124:1337/"
-STRAPI_ID = 2 # (0:ANIMAL, 0:VQA, 1:ETRO) index of the current project
+#STRAPI_ID = 2 # (0:ANIMAL, 1:VQA, 2:ETRO) index of the current project
 language="EN"
 driver = None
-lst_image_caroussel = []
+lst_image_caroussel = []; lst_image_sdg = []
 TIMEOUT = 120
 seconds = TIMEOUT
 
@@ -47,13 +47,14 @@ def main(page: ft.Page):    # check if no mouse click from the user
     """
     Set of main GUI elements that requiered to be dynamic
     """
-    txt_title = ft.Text(value="", color="#2250c6", size=40, font_family="Rhetorik", width=800)
-    txt_topic = ft.Text(value="",color="#65C0B5", size=14, font_family="Plain")
-    txt_explain1 = ft.Text(value="", color="#1A202C", font_family="Plain", size=14, width=600)
+    txt_title = ft.Text(value="", color="#2250c6", size=45, font_family="Rhetorik", width=700)
+    txt_title_w = ft.Text(value="", color="#ffffff", size=45, font_family="Rhetorik", width=700)
+    txt_topic = ft.Text(value="",color="#65C0B5", size=16, font_family="Plain")
+    txt_research_head = ft.Text(value="",color="#000000", size=12, font_family="Plain")
+    txt_research_lead = ft.Text(value="",color="#000000", size=12, font_family="Plain")
+    txt_explain1 = ft.Text(value="", color="#1A202C", font_family="Plain", size=14, width=700)
     txt_start_demo = ft.Text(value="", color="#ffffff", size=28, font_family="Plain")
-    txt_title2 = ft.Text(value="", color="#ffffff", size=40, font_family="Rhetorik", width=600)
-    txt_topic2 = ft.Text(value="", color="#65C0B5", size=14, font_family="Plain")
-    txt_explain2 = ft.Text(width=600,value="", color="#ffffff", font_family="Plain", size=14)
+    txt_explain2 = ft.Text(width=700,value="", color="#ffffff", font_family="Plain", size=14)
     txt_learnmore = ft.ElevatedButton(
                         text="",
                         icon=ft.icons.LINK_ROUNDED,
@@ -83,7 +84,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
     def changeText():
         """Change the text language based on a given input string (EN, NL or FR)
         """
-        global language, imageURL, appURL, STRAPI_URL, lst_image_caroussel
+        global language, imageURL, appURL, STRAPI_URL, lst_image_caroussel, lst_image_sdg
         url = STRAPI_URL + "demos/"
         
         print("[+] Getting data from STRAPI")
@@ -100,13 +101,15 @@ def main(page: ft.Page):    # check if no mouse click from the user
 
             # TEXT
             txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+            txt_title_w.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
             txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
             txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
             txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
-            txt_title2.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-            txt_topic2.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
             txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
             txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
+            txt_research_head.value = response_json["data"][STRAPI_ID]["attributes"]["research_head"]
+            txt_research_lead.value = response_json["data"][STRAPI_ID]["attributes"]["research_lead"]
+            
             # APP URL
             appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
             # IMAGE
@@ -115,21 +118,35 @@ def main(page: ft.Page):    # check if no mouse click from the user
             response_json = response.json()
             imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"]["attributes"]["formats"]["medium"]["url"]
             # IMAGES CAROUSSEL
-            lenght_caroussel = len(response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"])
-            for i in range(0, lenght_caroussel):
-                urlimg = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"][i]["attributes"]["url"]
-                lst_image_caroussel.append(ft.Container(
-                    height=50,
-                    width=300,
-                    content=
-                    ft.Image(
-                        src=urlimg,
-                        fit=ft.ImageFit.FIT_HEIGHT,
-                        color="#c5c5c5",
+            if(len(lst_image_caroussel)==0):
+                lenght_caroussel = len(response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"])
+                for i in range(0, lenght_caroussel):
+                    urlimg = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"][i]["attributes"]["url"]
+                    lst_image_caroussel.append(ft.Container(
                         height=50,
-                    ),
+                        width=300,
+                        content=
+                        ft.Image(
+                            src=urlimg,
+                            fit=ft.ImageFit.FIT_HEIGHT,
+                            color="#c5c5c5",
+                            height=50,
+                        ),
+                        )
                     )
-                )
+            # IMAGES SDG
+            if(len(lst_image_sdg)==0):
+                lenght_sdg = len(response_json["data"][STRAPI_ID]["attributes"]["images_sdg"]["data"])
+                for i in range(0, lenght_sdg):
+                    urlimg = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["images_sdg"]["data"][i]["attributes"]["url"]
+                    lst_image_sdg.append(
+                        ft.Image(
+                            src=urlimg,
+                            fit=ft.ImageFit.FIT_HEIGHT,
+                            height=40,
+                        ),
+                        
+                    )
             
             
         except:
@@ -227,7 +244,7 @@ def main(page: ft.Page):    # check if no mouse click from the user
         Args:
             route (string): The URL of the desired page
         """  
-        global imageURL, current_route, lst_image_caroussel  
+        global imageURL, current_route, lst_image_caroussel, lst_image_sdg
         current_route = route
         page.views.clear()
         page.views.append(
@@ -412,13 +429,44 @@ def main(page: ft.Page):    # check if no mouse click from the user
                                 controls=[
                                 ft.Column(
                                     spacing=(20),
+                                    width=700,
                                     controls=[
                                         txt_title,
-                                        txt_topic,
+                                        ft.Column(
+                                            spacing=(5),
+                                            controls=[
+                                                ft.Row(
+                                                    spacing=20,
+                                                    controls=[
+                                                        ft.Text(value="Research head:", weight=ft.FontWeight.BOLD,color="#000000", size=12, font_family="Plain"),
+                                                        txt_research_head,
+                                                    ]
+                                                ),
+                                                ft.Row(
+                                                    spacing=20,
+                                                    controls=[
+                                                        ft.Text(value="Lead researcher(s):", weight=ft.FontWeight.BOLD,color="#000000", size=12, font_family="Plain"),
+                                                        txt_research_lead,
+                                                    ]
+                                                ),
+                                            ]
+                                        ),
+                                        ft.Row(
+                        
+                                            controls=[
+                                                txt_topic,
+                                                ft.Row(
+                                                    spacing=10,
+                                                    controls=lst_image_sdg,
+                                                ),
+                                                
+                                            ],
+                                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                                        ),
                                         txt_explain1,
                                         txt_learnmore,
                                     ],
-                                    alignment=ft.MainAxisAlignment.CENTER,
+                                    #alignment=ft.MainAxisAlignment.CENTER,
                                 ),
                                 ft.ElevatedButton(
                                     content=
@@ -501,7 +549,6 @@ def main(page: ft.Page):    # check if no mouse click from the user
                 )
             )
         if page.route == "/more":
-            seconds = 300
             page.views.append(
                 ft.View(
                     "/more",
@@ -533,8 +580,8 @@ def main(page: ft.Page):    # check if no mouse click from the user
                                 ft.Column(
                                     spacing=(20),
                                     controls=[
-                                        txt_title2,
-                                        txt_topic2,
+                                        txt_title_w,
+                                        txt_topic,
                                         txt_explain2,    
                                     ],
                                     
