@@ -95,62 +95,64 @@ def main(page: ft.Page):    # check if no mouse click from the user
         elif(language=="FR"):
             url = STRAPI_URL + "api/demos?locale=fr-FR"
 
-        try:
-            response = requests.get(url) # Call the STRAPI API        
-            response_json = response.json()
+        
+        response = requests.get(url) # Call the STRAPI API        
+        response_json = response.json()
 
-            # TEXT
-            txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-            txt_title_w.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
-            txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
-            txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
-            txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
-            txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
-            txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
-            txt_research_head.value = response_json["data"][STRAPI_ID]["attributes"]["research_head"]
-            txt_research_lead.value = response_json["data"][STRAPI_ID]["attributes"]["research_lead"]
-            
-            # APP URL
-            appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
-            # IMAGE
-            url_img = STRAPI_URL + "api/demos?populate=*"
-            response = requests.get(url_img) # Call the STRAPI API
-            response_json = response.json()
+        # TEXT
+        txt_title.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+        txt_title_w.value = response_json["data"][STRAPI_ID]["attributes"]["title"]
+        txt_topic.value = response_json["data"][STRAPI_ID]["attributes"]["topic"]
+        txt_explain1.value = response_json["data"][STRAPI_ID]["attributes"]["explanation_short"]
+        txt_start_demo.value = response_json["data"][STRAPI_ID]["attributes"]["button_demo_start"]
+        txt_explain2.value = response_json["data"][STRAPI_ID]["attributes"]["explanation"]
+        txt_learnmore.text = response_json["data"][STRAPI_ID]["attributes"]["learn_more"]
+        txt_research_head.value = response_json["data"][STRAPI_ID]["attributes"]["research_head"]
+        txt_research_lead.value = response_json["data"][STRAPI_ID]["attributes"]["research_lead"]
+        
+        # APP URL
+        appURL = response_json["data"][STRAPI_ID]["attributes"]["appURL"]
+        # IMAGE
+        url_img = STRAPI_URL + "api/demos?populate=*"
+        response = requests.get(url_img) # Call the STRAPI API
+        response_json = response.json()
+        try:
             imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"]["attributes"]["formats"]["medium"]["url"]
-            # IMAGES CAROUSSEL
-            if(len(lst_image_caroussel)==0):
-                lenght_caroussel = len(response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"])
-                for i in range(0, lenght_caroussel):
-                    urlimg = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"][i]["attributes"]["url"]
-                    lst_image_caroussel.append(ft.Container(
-                        height=50,
-                        width=300,
-                        content=
-                        ft.Image(
-                            src=urlimg,
-                            fit=ft.ImageFit.FIT_HEIGHT,
-                            color="#c5c5c5",
-                            height=50,
-                        ),
-                        )
-                    )
-            # IMAGES SDG
-            if(len(lst_image_sdg)==0):
-                lenght_sdg = len(response_json["data"][STRAPI_ID]["attributes"]["images_sdg"]["data"])
-                for i in range(0, lenght_sdg):
-                    urlimg = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["images_sdg"]["data"][i]["attributes"]["url"]
-                    lst_image_sdg.append(
-                        ft.Image(
-                            src=urlimg,
-                            fit=ft.ImageFit.FIT_HEIGHT,
-                            height=40,
-                        ),
-                        
-                    )
-            
-            
         except:
-            print("[!] Error - CMS is offline")
+            imageURL = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["image"]["data"]["attributes"]["url"]
+
+        # IMAGES CAROUSSEL
+        if(len(lst_image_caroussel)==0):
+            lenght_caroussel = len(response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"])
+            for i in range(0, lenght_caroussel):
+                urlimg = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["caroussel"]["data"][i]["attributes"]["url"]
+                lst_image_caroussel.append(ft.Container(
+                    height=50,
+                    width=300,
+                    content=
+                    ft.Image(
+                        src=urlimg,
+                        fit=ft.ImageFit.FIT_HEIGHT,
+                        color="#c5c5c5",
+                        height=50,
+                    ),
+                    )
+                )
+        # IMAGES SDG
+        if(len(lst_image_sdg)==0):
+            lenght_sdg = len(response_json["data"][STRAPI_ID]["attributes"]["images_sdg"]["data"])
+            for i in range(0, lenght_sdg):
+                urlimg = STRAPI_URL[:-1] + response_json["data"][STRAPI_ID]["attributes"]["images_sdg"]["data"][i]["attributes"]["url"]
+                lst_image_sdg.append(
+                    ft.Image(
+                        src=urlimg,
+                        fit=ft.ImageFit.FIT_HEIGHT,
+                        height=40,
+                    ),
+                    
+                )
+        
+        
 
     def loadLang():
         """Base on the value of the global var 'language', it load the set of text in the correct language
